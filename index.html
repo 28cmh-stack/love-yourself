@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Self-Love Quotes with Bounce Animation</title>
+  <style>
+    body, html {
+      margin: 0; padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background-color: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #333;
+      position: relative;
+    }
+
+    #emoji-background {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+      background: #f5f5f5;
+    }
+
+    .floating-emoji {
+      position: absolute;
+      font-size: 24px;
+      user-select: none;
+      opacity: 0.8;
+      will-change: transform, opacity;
+    }
+
+    .quote-container {
+      position: relative;
+      z-index: 1;
+      background: rgba(255 255 255 / 0.85);
+      max-width: 600px;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+      text-align: center;
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transition: opacity 0.5s ease;
+      color: #333;
+    }
+
+    .quote-text {
+      font-size: 1.4rem;
+      line-height: 1.5;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      user-select: none;
+    }
+
+    .quote-author {
+      font-size: 1rem;
+      color: #777;
+      font-style: italic;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="emoji-background"></div>
+
+  <div class="quote-container" id="quote-box">
+    <div class="quote-text" id="quote-text">Loading...</div>
+    <div class="quote-author" id="quote-author"></div>
+  </div>
+
+  <script>
+    const emojis = [
+      "🤝", "💖", "🕊️", "🌸", "✨", "🌟", "🌍", "🌎", "🌏",
+      "❤️", "💞", "💫", "🎉", "🌈", "🤗", "🤲", "🙌", "🧡", "💛", "💚", "💙", "💜",
+      "🫂", "🤍", "☮️", "💐", "🎈", "😊", "🌹"
+    ];
+
+    const emojiBg = document.getElementById('emoji-background');
+    const quoteBox = document.getElementById('quote-box');
+
+    // Get quote box position and dimensions (relative to viewport)
+    function getQuoteBoxRect() {
+      return quoteBox.getBoundingClientRect();
+    }
+
+    // Store active emojis with their state
+    const activeEmojis = [];
+
+    function createFloatingEmoji() {
+      const emojiEl = document.createElement('div');
+      emojiEl.classList.add('floating-emoji');
+
+      emojiEl.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+
+      // Start horizontal position: 0 - 95 vw
+      const startX = Math.random() * window.innerWidth * 0.95;
+      emojiEl.style.left = `${startX}px`;
+
+      // Random font size 18-36 px
+      const size = 18 + Math.random() * 18;
+      emojiEl.style.fontSize = `${size}px`;
+
+      // Start vertical position: just below viewport (window.innerHeight + size)
+      let startY = window.innerHeight + size;
+
+      // Append to container
+      emojiBg.appendChild(emojiEl);
+
+      // Emoji state
+      const emojiState = {
+        el: emojiEl,
+        x: startX,
+        y: startY,
+        size,
+        velocityY: -(1 + Math.random() * 1.5), // initial upward velocity in px per frame (~60fps)
+        swayPhase: Math.random() * Math.PI * 2, // phase for horizontal sway
+      };
+
+      activeEmojis.push(emojiState);
+    }
+
+    // Animate all emojis with bouncing on quote box
+    function animateEmojis(time) {
+      const rect = getQuoteBoxRect();
+
+      for (let i = activeEmojis.length - 1; i >= 0; i--) {
+        const emoji = activeEmojis[i];
+
+        // Update sway phase and calculate horizontal sway (±10px)
+        emoji.swayPhase += 0.05;
+        const swayX = 10 * Math.sin(emoji.swayPhase);
+        emoji.x += 0; // horizontal x is fixed, sway applies on transform only
+
+        // Update vertical position with velocity
+        emoji.y += emoji.velocityY;
+
+        // Bounce check: if emoji hits top edge of quote box, reverse velocity (bounce)
+        // We'll check if emoji bottom (y) is less than quoteBox top (rect.top)
+        // Since y is the top coordinate of emoji (approx), we consider emoji height as size
+
+        if (emoji.y <= rect.top + window.scrollY + 5 && emoji.velocityY < 0) {
+          // Bounce: reverse velocity with full energy
+          emoji.velocityY = -emoji.velocityY;
+          // Optional: add slight random factor to velocity to vary bounce
+          emoji.velocityY += (Math.random() - 0.5) * 0.3;
+        }
+
+        // Fade out if emoji goes above viewport (y < -size)
+        if (emoji.y < -emoji.size) {
+          // Remove from DOM and array
+          emoji.el.remove();
+          activeEmojis.splice(i, 1);
+          continue;
+        }
+
+        // Apply style updates
+        emoji.el.style.top = `${emoji.y}px`;
+        emoji.el.style.left = `${emoji.x}px`;
+        emoji.el.style.opacity = 0.8 * Math.max(0, 1 - (window.innerHeight - emoji.y) / (window.innerHeight + emoji.size));
+        emoji.el.style.transform = `translateX(${swayX}px)`;
+      }
+
+      requestAnimationFrame(animateEmojis);
+    }
+
+    // Create a new emoji every 300ms
+    setInterval(() => {
+      if (activeEmojis.length < 40) { // Limit max emojis for performance
+        createFloatingEmoji();
+      }
+    }, 300);
+
+    // Start animation loop
+    requestAnimationFrame(animateEmojis);
+
+    // Quotes about self-love
+    const quotes = [
+      { text: "To love oneself is the beginning of a lifelong romance.", author: "Oscar Wilde" },
+      { text: "You yourself, as much as anybody in the entire universe, deserve your love and affection.", author: "Buddha" },
+      { text: "Owning our story and loving ourselves through that process is the bravest thing we’ll ever do.", author: "Brené Brown" },
+      { text: "Love yourself first and everything else falls into line.", author: "Lucille Ball" },
+      { text: "Self-love is not selfish; you cannot truly love another until you know how to love yourself.", author: "Unknown" },
+      { text: "Be yourself, love yourself, and shine among the stars.", author: "Unknown" },
+      { text: "You owe yourself the love that you so freely give to others.", author: "Unknown" },
+      { text: "Don’t rely on someone else for your happiness and self-worth. Only you can be responsible for that.", author: "Stacey Charter" },
+      { text: "When you adopt the view that you deserve love, your life transforms.", author: "Iyanla Vanzant" },
+      { text: "Self-care is how you take your power back.", author: "Lalah Delia" },
+      { text: "Talk to yourself like you would to someone you love.", author: "Brené Brown" },
+      { text: "The more you love yourself, the less nonsense you’ll tolerate.", author: "Unknown" },
+      { text: "Love yourself unconditionally, just as you love those closest to you despite their faults.", author: "Les Brown" },
+      { text: "Your relationship with yourself sets the tone for every other relationship you have.", author: "Robert Holden" },
+      { text: "Be gentle with yourself, you’re doing the best you can.", author: "Unknown" }
+    ];
+
+    const quoteTextEl = document.getElementById('quote-text');
+    const quoteAuthorEl = document.getElementById('quote-author');
+    const quoteBoxEl = document.getElementById('quote-box');
+
+    function showQuote() {
+      quoteBoxEl.style.opacity = 0;
+
+      setTimeout(() => {
+        const randomIndex = Math.floor(Math.random() * quotes.length);
+        const { text, author } = quotes[randomIndex];
+        quoteTextEl.textContent = `"${text}"`;
+        quoteAuthorEl.textContent = author ? `— ${author}` : '';
+
+        quoteBoxEl.style.opacity = 1;
+      }, 500);
+    }
+
+    showQuote();
+    setInterval(showQuote, 6000);
+  </script>
+</body>
+</html>
