@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Self-Love Quotes with Bounce Animation</title>
+  <title>Self-Love Quotes with Bouncing Emojis</title>
   <style>
     body, html {
       margin: 0; padding: 0;
@@ -26,21 +26,19 @@
       pointer-events: none;
       overflow: hidden;
       z-index: 0;
-      background: #f5f5f5;
     }
 
     .floating-emoji {
       position: absolute;
       font-size: 24px;
       user-select: none;
-      opacity: 0.8;
-      will-change: transform, opacity;
+      will-change: transform, top, left;
     }
 
     .quote-container {
       position: relative;
       z-index: 1;
-      background: rgba(255 255 255 / 0.85);
+      background: rgba(255, 255, 255, 0.85);
       max-width: 600px;
       padding: 40px 30px;
       border-radius: 12px;
@@ -87,82 +85,74 @@
     ];
 
     const emojiBg = document.getElementById('emoji-background');
-    const quoteBox = document.getElementById('quote-box');
-
-    function getQuoteBoxRect() {
-      return quoteBox.getBoundingClientRect();
-    }
-
     const activeEmojis = [];
 
-    function createFloatingEmoji() {
+    function createBouncingEmoji() {
       const emojiEl = document.createElement('div');
       emojiEl.classList.add('floating-emoji');
-
       emojiEl.textContent = emojis[Math.floor(Math.random() * emojis.length)];
 
-      const startX = Math.random() * window.innerWidth * 0.95;
-      emojiEl.style.left = `${startX}px`;
-
-      const size = 18 + Math.random() * 18;
+      const size = 18 + Math.random() * 24;
       emojiEl.style.fontSize = `${size}px`;
 
-      let startY = window.innerHeight + size;
+      const x = Math.random() * (window.innerWidth - size);
+      const y = Math.random() * (window.innerHeight - size);
+      emojiEl.style.left = `${x}px`;
+      emojiEl.style.top = `${y}px`;
 
-      emojiBg.appendChild(emojiEl);
+      // Random velocities
+      const velocityX = (Math.random() - 0.5) * 4; // Between -2 and 2
+      const velocityY = (Math.random() - 0.5) * 4;
 
       const emojiState = {
         el: emojiEl,
-        x: startX,
-        y: startY,
+        x,
+        y,
         size,
-        velocityY: -(1 + Math.random() * 1.5),
-        swayPhase: Math.random() * Math.PI * 2,
+        velocityX,
+        velocityY,
       };
 
+      emojiBg.appendChild(emojiEl);
       activeEmojis.push(emojiState);
     }
 
     function animateEmojis() {
-      const rect = getQuoteBoxRect();
-
       for (let i = activeEmojis.length - 1; i >= 0; i--) {
         const emoji = activeEmojis[i];
 
-        emoji.swayPhase += 0.05;
-        const swayX = 10 * Math.sin(emoji.swayPhase);
-
+        // Update position
+        emoji.x += emoji.velocityX;
         emoji.y += emoji.velocityY;
 
-        if (emoji.y <= rect.top + window.scrollY + 5 && emoji.velocityY < 0) {
-          emoji.velocityY = -emoji.velocityY;
-          emoji.velocityY += (Math.random() - 0.5) * 0.3;
+        // Bounce off window edges
+        if (emoji.x <= 0 || emoji.x + emoji.size >= window.innerWidth) {
+          emoji.velocityX *= -1;
+          emoji.x = Math.max(0, Math.min(emoji.x, window.innerWidth - emoji.size));
+        }
+        if (emoji.y <= 0 || emoji.y + emoji.size >= window.innerHeight) {
+          emoji.velocityY *= -1;
+          emoji.y = Math.max(0, Math.min(emoji.y, window.innerHeight - emoji.size));
         }
 
-        if (emoji.y < -emoji.size) {
-          emoji.el.remove();
-          activeEmojis.splice(i, 1);
-          continue;
-        }
-
-        emoji.el.style.top = `${emoji.y}px`;
         emoji.el.style.left = `${emoji.x}px`;
-        emoji.el.style.opacity = 0.8 * Math.max(0, 1 - (window.innerHeight - emoji.y) / (window.innerHeight + emoji.size));
-        emoji.el.style.transform = `translateX(${swayX}px)`;
+        emoji.el.style.top = `${emoji.y}px`;
       }
 
       requestAnimationFrame(animateEmojis);
     }
 
-    // Faster emoji creation and increased max count
+    // Start animation loop
+    requestAnimationFrame(animateEmojis);
+
+    // Create new emoji every 200ms
     setInterval(() => {
       if (activeEmojis.length < 50) {
-        createFloatingEmoji();
+        createBouncingEmoji();
       }
     }, 200);
 
-    requestAnimationFrame(animateEmojis);
-
+    // Quotes
     const quotes = [
       { text: "To love oneself is the beginning of a lifelong romance.", author: "Oscar Wilde" },
       { text: "You yourself, as much as anybody in the entire universe, deserve your love and affection.", author: "Buddha" },
@@ -193,7 +183,6 @@
         const { text, author } = quotes[randomIndex];
         quoteTextEl.textContent = `"${text}"`;
         quoteAuthorEl.textContent = author ? `— ${author}` : '';
-
         quoteBoxEl.style.opacity = 1;
       }, 500);
     }
@@ -203,3 +192,9 @@
   </script>
 </body>
 </html>
+
+    setInterval(showQuote, 6000);
+  </script>
+</body>
+</html>
+
