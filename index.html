@@ -6,7 +6,8 @@
   <title>Self-Love Quotes with Bouncing Emojis</title>
   <style>
     body, html {
-      margin: 0; padding: 0;
+      margin: 0;
+      padding: 0;
       height: 100%;
       overflow: hidden;
       font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -20,7 +21,8 @@
 
     #emoji-background {
       position: fixed;
-      top: 0; left: 0;
+      top: 0;
+      left: 0;
       width: 100vw;
       height: 100vh;
       pointer-events: none;
@@ -100,8 +102,7 @@
       emojiEl.style.left = `${x}px`;
       emojiEl.style.top = `${y}px`;
 
-      // Random velocities
-      const velocityX = (Math.random() - 0.5) * 4; // Between -2 and 2
+      const velocityX = (Math.random() - 0.5) * 4;
       const velocityY = (Math.random() - 0.5) * 4;
 
       const emojiState = {
@@ -121,7 +122,6 @@
       for (let i = activeEmojis.length - 1; i >= 0; i--) {
         const emoji = activeEmojis[i];
 
-        // Update position
         emoji.x += emoji.velocityX;
         emoji.y += emoji.velocityY;
 
@@ -142,17 +142,14 @@
       requestAnimationFrame(animateEmojis);
     }
 
-    // Start animation loop
     requestAnimationFrame(animateEmojis);
 
-    // Create new emoji every 200ms
     setInterval(() => {
       if (activeEmojis.length < 50) {
         createBouncingEmoji();
       }
     }, 200);
 
-    // Quotes
     const quotes = [
       { text: "To love oneself is the beginning of a lifelong romance.", author: "Oscar Wilde" },
       { text: "You yourself, as much as anybody in the entire universe, deserve your love and affection.", author: "Buddha" },
@@ -188,11 +185,6 @@
     }
 
     showQuote();
-    setInterval(showQuote, 6000);
-  </script>
-</body>
-</html>
-
     setInterval(showQuote, 6000);
   </script>
 </body>
